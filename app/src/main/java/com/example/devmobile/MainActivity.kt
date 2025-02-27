@@ -7,13 +7,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,21 +44,31 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DevMobileTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    InfiniteArticleList()
-                }
-            }
+            MainScreen()
         }
     }
 }
 
 // Sample Article Data Class
-data class Article(val id: Int, val title: String, val content: String)
+data class Article(
+    val id: Int,
+    val title: String,
+    val content: String,
+    val imageUrl: Int, // Resource ID for the image
+    var isFavorite: Boolean = false // Add a favorite property
+)
+@Composable
+fun MainScreen() {
+    DevMobileTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            InfiniteArticleList()
+        }
+    }
+}
 
 @Composable
 fun InfiniteArticleList() {
@@ -63,8 +83,10 @@ fun InfiniteArticleList() {
         val newArticles = (1..20).map {
             Article(
                 id = (page - 1) * 20 + it,
-                title = "Article ${ (page - 1) * 20 + it }",
-                content = "Content for article ${ (page - 1) * 20 + it }"
+                title = "Article ${(page - 1) * 20 + it}",
+                content = "Content for article ${(page - 1) * 20 + it}",
+                imageUrl = 0,
+                isFavorite = false
             )
         }
         return newArticles
@@ -98,7 +120,10 @@ fun InfiniteArticleList() {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(articles) { article ->
-            ArticleItem(article)
+            ArticleItem(
+                article,
+                onFavoriteClick = { article.isFavorite = true }
+            )
             HorizontalDivider()
         }
 
@@ -128,9 +153,34 @@ fun InfiniteArticleList() {
 }
 
 @Composable
-fun ArticleItem(article: Article) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = article.title)
-        Text(text = article.content)
+fun ArticleItem(article: Article, onFavoriteClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Article Image
+
+        Spacer(modifier = Modifier.width(8.dp))
+        // Article Details
+        Column(modifier = Modifier.weight(1f)) {
+            if (article.isFavorite) {
+                Text(text = article.title, style = MaterialTheme.typography.titleLarge)
+            } else {
+                Text(text = article.title, style = MaterialTheme.typography.titleMedium)
+            }
+            // Text(text = article.title, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = article.content, style = MaterialTheme.typography.bodyMedium)
+        }
+        // Favorite Button
+        IconButton(onClick = onFavoriteClick) {
+            Icon(
+                imageVector = if (article.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = "Favorite",
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
