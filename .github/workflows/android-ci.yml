@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -47,11 +50,17 @@ jobs:
 
       - name: Build Release AAB
         run: ./gradlew bundleRelease
-
-      - name: Commit and Push updated README
+      
+      - name: Configure Git and Push Updated README (Optional)
+        if: always()
+        continue-on-error: true
         run: |
+          # Clean up any existing remote
+          git remote rm origin || true
+          # Set the remote URL with GITHUB_TOKEN
+          git remote add origin https://github.com/${{ github.repository }}
           git config user.name "GitHub Actions Bot"
-          git config user.email "<bot-app-version>"
+          git config user.email "<>"
           git add README.md
-          git commit -m "chore: Update README with app version ${{ steps.extract_version.outputs.VERSION_NAME }}"
-          git push
+          git commit -m "chore: Update README with app version ${{ steps.extract_version.outputs.VERSION_NAME }}" || true
+          git push origin HEAD:master || true
