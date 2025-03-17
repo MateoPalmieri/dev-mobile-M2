@@ -20,11 +20,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +44,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.devmobile.ui.theme.DevMobileTheme
 import kotlinx.coroutines.delay
 
@@ -45,27 +55,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MainScreen()
-        }
-    }
-}
-
-// Sample Article Data Class
-data class Article(
-    val id: Int,
-    val title: String,
-    val content: String,
-    val imageUrl: Int, // Resource ID for the image
-    var isFavorite: Boolean = false // Add a favorite property
-)
-@Composable
-fun MainScreen() {
-    DevMobileTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            InfiniteArticleList()
         }
     }
 }
@@ -83,8 +72,8 @@ fun InfiniteArticleList() {
         val newArticles = (1..20).map {
             Article(
                 id = (page - 1) * 20 + it,
-                title = "Article ${(page - 1) * 20 + it}",
-                content = "Content for article ${(page - 1) * 20 + it}",
+                title = "Équipe ${(page - 1) * 20 + it}",
+                content = "Description de l'équipe ${(page - 1) * 20 + it}",
                 imageUrl = 0,
                 isFavorite = false
             )
@@ -122,7 +111,9 @@ fun InfiniteArticleList() {
         items(articles) { article ->
             ArticleItem(
                 article,
-                onFavoriteClick = { article.isFavorite = true }
+                onFavoriteClick = {
+                    article.isFavorite = !article.isFavorite
+                }
             )
             HorizontalDivider()
         }
@@ -181,6 +172,89 @@ fun ArticleItem(article: Article, onFavoriteClick: () -> Unit) {
                 contentDescription = "Favorite",
                 modifier = Modifier.size(24.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun MainScreen() {
+    DevMobileTheme {
+        val navController = androidx.navigation.compose.rememberNavController()
+
+        val bottomNavItems = listOf(
+            BottomNavItem(
+                name = "Home",
+                route = "home",
+                icon = Icons.Default.Home
+            ),
+            BottomNavItem(
+                name = "Profile",
+                route = "profile",
+                icon = Icons.Default.Person,
+                badgeCount = 2 // Example badge count
+            )
+        )
+
+        // A surface container using the 'background' color from the theme
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Scaffold(
+                    bottomBar = {
+                        NavigationBar {
+                            val navBackStackEntry by navController.currentBackStackEntryAsState() // Correctly called here
+                            val currentRoute = navBackStackEntry?.destination?.route
+                            bottomNavItems.forEach { item ->
+                                NavigationBarItem(
+                                    icon = {
+                                        BadgedBox(
+                                            badge = {
+                                                if (item.badgeCount > 0) {
+                                                    Badge {
+                                                        Text(text = item.badgeCount.toString())
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = item.icon,
+                                                contentDescription = item.name
+                                            )
+                                        }
+                                    },
+                                    label = { Text(text = item.name) },
+                                    selected = currentRoute == item.route,
+                                    onClick = {
+                                        navController.navigate(item.route) {
+                                            navController.graph.startDestinationRoute?.let { route ->
+                                                popUpTo(route) {
+                                                    saveState = true
+                                                }
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
+                    NavHost( // This is the composable function, not the interface
+                        navController = navController,
+                        startDestination = "home",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("home") { InfiniteArticleList() }
+                        composable("profile") { UserProfileScreen() }
+                    }
+                }
+            }
         }
     }
 }
