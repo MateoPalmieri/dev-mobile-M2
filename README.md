@@ -5,6 +5,10 @@
 [![Kotlin Version](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg)](https://kotlinlang.org)
 [![App Version](https://img.shields.io/badge/Version-0.1.0-green.svg)](#)
 
+## Version de l'application
+
+APP_VERSION_PLACEHOLDER
+
 ## Description
 
 Gérer vos différents sports, vos équipes et vos matchs, le tout dans une seule application. Vous pouvez également trouver des matchs près de chez vous ou de votre lieu favori, et suivre l'évolution des matchs alentours ou de vos équipes.
