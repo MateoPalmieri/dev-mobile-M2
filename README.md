@@ -7,7 +7,7 @@
 
 ## Version de l'application
 
-APP_VERSION_PLACEHOLDER
+0.1.0
 
 ## Description
 
